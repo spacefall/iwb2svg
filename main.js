@@ -45,14 +45,44 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
         let jsonData = JSON.parse(lineJson);
         switch (lines[i].charAt(0)) {
             case "g":
-                if (jsonData.delete || deleted) {
-                    let polyline = svg.polyline(pointsConversion(jsonData.points)).fill("none");
-                    if (input_dita && jsonData.pt === 1) polyline.stroke({color: jsonData.pc, width: jsonData.ps});
-                    if (input_penna && jsonData.pt === 2) polyline.stroke({color: jsonData.pc, width: jsonData.ps});
-                    if ("transform" in jsonData) {
-                        let matrix = jsonData.transform;
-                        polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
-                    }
+                switch (lines[i].substring(2, lines[i].indexOf(":", 2))) {
+                    case "1":
+                        if (jsonData.delete || deleted) {
+                            let polyline = svg.polyline(pointsConversion(jsonData.points)).fill("none");
+                            if (input_dita && jsonData.pt === 1) polyline.stroke({color: jsonData.pc, width: jsonData.ps});
+                            if (input_penna && jsonData.pt === 2) polyline.stroke({color: jsonData.pc, width: jsonData.ps});
+                            if ("transform" in jsonData) {
+                                let matrix = jsonData.transform;
+                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                            }
+                        }
+                        break;
+
+                    case "9":
+                        if (jsonData.delete || deleted) {
+                            let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
+                            line.stroke({color: jsonData.pc, width: jsonData.ps});
+                            if ("transform" in jsonData) {
+                                let matrix = jsonData.transform;
+                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                            }
+                        }
+                        break;
+                    case "11":
+                        if (jsonData.delete || deleted) {
+                            let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
+                            line.stroke({color: jsonData.pc, width: jsonData.ps, dasharray: "20,20"});
+                            if ("transform" in jsonData) {
+                                let matrix = jsonData.transform;
+                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                            }
+                        }
+                        break;
+
+                    default:
+                        console.log("Tipo di scrittura sconosciuto: ", lines[i].substring(2, lines[i].indexOf(":", 2)));
+                        console.log(lines[i]);
+                        break;
                 }
 
                 break;
