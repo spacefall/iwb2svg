@@ -23,6 +23,7 @@ function parseInput(iwb) {
     let lines = iwb.split("\n");
     for (let i = 0; i<lines.length; i++) {
         let curLine = lines[i];
+        let curLineCut = curLine.substring(0,2);
         switch (curLine.substring(0,2)) {
             case "p{":
                 pages.push([]);
@@ -31,15 +32,17 @@ function parseInput(iwb) {
             case "g:":
                 pages[pages.length-1].push(curLine);
                 break;
+            default:
+                if (!["a:", "pm", "am", ""].includes(curLineCut)) console.log("Rimuovendo attributo sconosciuto: ", curLine);
         }
     }
-    console.log(pages);
+    //console.log(pages);
     return pages;
 }
 
 function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
     let lines = iwb
-    console.log(lines)
+    //console.log(lines)
     for (let i = 0; i < lines.length; i++) {
         let lineJson = lines[i].substring(lines[i].indexOf("{"));
         let jsonData = JSON.parse(lineJson);
@@ -84,12 +87,11 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                         console.log(lines[i]);
                         break;
                 }
-
                 break;
 
             case "p":
                 if (lines[i].charAt(1) === "{") {
-                    console.log(jsonData);
+                    //console.log(jsonData);
                     svg.css("background-color", signedInt2Hex(jsonData.bg.bc));
                 }
                 break;
