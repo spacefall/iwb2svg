@@ -1,17 +1,48 @@
-let svg = SVG().addTo('body');
+const svg = SVG("#preview")
+const iwbFile = document.getElementById('iwb-loader');
 let currPage = 0;
-let globalPages = [];
+let pageList = [];
 
-function pointsConversion(points) {
-    let pointsStr = "";
-    for (let i = 0; i < points.length; i++) {
-        pointsStr += points[i][0] + "," + points[i][1] + " ";
-    }
-    return pointsStr;
+const touchChk = document.getElementById("touchChk");
+const pennaChk = document.getElementById("pennaChk");
+const precisioneChk = document.getElementById("precisioneChk");
+const cancellatiChk = document.getElementById("cancellatiChk");
+
+// Trasforma la lista di punti in stringhe per uso con polyline, saltando i cambiamenti di spessore per velocità
+function pointsConvQuick(points) {
+    const ptList = [[1, ""]]
+    points.map((ptArray) => {
+        ptList[0][1] += `${ptArray[0]},${ptArray[1]} `;
+    })
+    return ptList;
 }
 
-// TODO: controlla se il numero è codificato in argb e ff iniziali non sono quindi un artefatto
-//  bisogna fare test con la trasparenza, nel frattempo il numero viene convertito in rgba
+// Trasforma la lista di punti in stringhe per uso con polyline, separando anche i punti per spessore
+// in modo da avere una conversione più precisa
+function pointsConvPrecision(points) {
+    const ptList = [];
+    let thList = [0];
+    let lastPoint = "";
+    points.map((ptArray) => {
+        let thickness = parseFloat(ptArray[2])
+        if (thList[0] === thickness) {
+            thList[1] += ` ${ptArray[0]},${ptArray[1]}`;
+        } else {
+            if (thList[0] !== 0) ptList.push(thList);
+            thList = [thickness, `${lastPoint}${ptArray[0]},${ptArray[1]}`];
+        }
+        lastPoint = `${ptArray[0]},${ptArray[1]} `;
+    })
+    ptList.push(thList);
+    return ptList;
+}
+
+// Questa funzione converte l'int con segno del colore in hex, per un utilizzo più semplice
+// Il numero pare essere in ARGB al posto di RGBA, siccome nello sfondo la trasparenza non esiste,
+//  non ho la certezza che il canale alpha non sia solo il loro modo di indicare un colore;
+//  sarebbe quindi utile effettuare dei test con la penna in trasparenza, anche se questa funzione è stata rimossa. (nelle versioni aggiornate della lavagna)
+//  Al momento però questa funzione lo trasforma in RGBA che produce comunque gli stessi risultati.
+// TODO: test penna trasparenza, vedi sopra
 function signedInt2Hex(n) {
     let hexNum = (n >>> 0).toString(16);
     return "#" + hexNum.substring(2) + hexNum.substring(0,2);
@@ -42,44 +73,67 @@ function parseInput(iwb) {
 
 function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
     let lines = iwb
+    console.time("parsing");
     //console.log(lines)
     for (let i = 0; i < lines.length; i++) {
         let lineJson = lines[i].substring(lines[i].indexOf("{"));
         let jsonData = JSON.parse(lineJson);
         switch (lines[i].charAt(0)) {
             case "g":
+                const pColor = signedInt2Hex(jsonData.props.color);
+                const pSize = jsonData.ps;
                 switch (lines[i].substring(2, lines[i].indexOf(":", 2))) {
                     case "1":
-                        if (jsonData.delete || deleted) {
-                            let polyline = svg.polyline(pointsConversion(jsonData.points)).fill("none");
-                            let strokeConf = {color: jsonData.pc, width: jsonData.ps, linecap: "round", linejoin: "round"}
-                            if (input_dita && jsonData.pt === 1) polyline.stroke(strokeConf);
-                            if (input_penna && jsonData.pt === 2) polyline.stroke(strokeConf);
-                            if ("transform" in jsonData) {
-                                let matrix = jsonData.transform;
-                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                        if (deleted || jsonData.delete) {
+                            const strokeConf = {color: pColor, width: pSize, linecap: "round", linejoin: "round"}
+
+                            if (precisioneChk.checked) {
+                                const pointList = pointsConvPrecision(jsonData.points);
+                                pointList.map((pt) => {
+                                    if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
+                                        const strokeUpd = {...strokeConf};
+                                        strokeUpd.width = strokeUpd.width * pt[0];
+
+                                        let polyline = svg.polyline(pt[1]).fill("none").stroke(strokeUpd);
+                                        if ("transform" in jsonData) {
+                                            let t = jsonData.transform;
+                                            polyline.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
+                                        }
+                                    }
+                                });
+                            } else {
+                                const pointList = pointsConvQuick(jsonData.points);
+                                pointList.map((pt) => {
+                                    if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
+                                        let polyline = svg.polyline(pt[1]).fill("none").stroke(strokeConf);
+                                        if ("transform" in jsonData) {
+                                            let t = jsonData.transform;
+                                            polyline.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
+                                        }
+                                    }
+                                });
                             }
                         }
                         break;
 
                     case "9":
-                        if (jsonData.delete || deleted) {
+                        if (deleted || jsonData.delete) {
                             let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
                             line.stroke({color: jsonData.pc, width: jsonData.ps, linecap: "round", linejoin: "round"});
                             if ("transform" in jsonData) {
-                                let matrix = jsonData.transform;
-                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                                let t = jsonData.transform;
+                                line.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
                             }
                         }
                         break;
 
                     case "11":
-                        if (jsonData.delete || deleted) {
+                        if (deleted || jsonData.delete) {
                             let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
                             line.stroke({color: jsonData.pc, width: jsonData.ps, dasharray: "20,20"});
                             if ("transform" in jsonData) {
-                                let matrix = jsonData.transform;
-                                polyline.transform({a:matrix[0], b:matrix[1], c:matrix[2], d:matrix[3], e:matrix[4], f:matrix[5]});
+                                let t = jsonData.transform;
+                                line.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
                             }
                         }
                         break;
@@ -92,46 +146,42 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                 break;
 
             case "p":
-                if (lines[i].charAt(1) === "{") {
-                    //console.log(jsonData);
-                    svg.css("background-color", signedInt2Hex(jsonData.bg.bc));
-                }
+                svg.css("background-color", signedInt2Hex(jsonData.bg.bc));
                 break;
             default:
                 break;
         }
     }
     let box = svg.bbox();
-    svg.viewbox([box.x, box.y, box.width, box.height]);
+    let padding = 250;
+    svg.viewbox([box.x-(padding/2), box.y-(padding/2), box.width+padding, box.height+padding]);
+    console.timeEnd("parsing");
 }
 
-const fileSelector = document.getElementById('file-selector');
-fileSelector.addEventListener('change', (event) => {
+function cambioPagina(prec) {
+    const oldPage = currPage
+    if (prec) currPage--; else currPage++;
+    if (currPage >= pageList.length) currPage = pageList.length - 1;
+    if (currPage < 0) currPage = 0;
+    if (currPage !== oldPage) refreshPagina();
+}
+
+function refreshPagina() {
+    if (pageList.length === 0) return;
+    svg.clear();
+    document.getElementById("pagina").innerText = currPage+1;
+    parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
+}
+
+iwbFile.addEventListener('change', (event) => {
     const fileList = event.target.files;
     const reader = new FileReader();
-    svg.clear();
+
     reader.addEventListener("loadend", () => {
         let data = reader.result;
-        globalPages = parseInput(data);
+        pageList = parseInput(data);
         currPage = 0;
-        parseIWB(globalPages[currPage], false, true, true)
-        //parseIWB(data, false, true, true);
+        refreshPagina();
     });
     reader.readAsText(fileList[0]);
 });
-
-function nextpage() {
-    if (currPage < globalPages.length) currPage++;
-    svg.clear();
-    document.getElementById("pcorr").innerText = currPage;
-    parseIWB(globalPages[currPage], false, true, true)
-}
-
-function prevpage() {
-    if (currPage > 0) currPage--;
-    svg.clear();
-    document.getElementById("pcorr").innerText = currPage;
-    parseIWB(globalPages[currPage], false, true, true)
-}
-
-//parseIWB(iwbfile, false, true, true);
