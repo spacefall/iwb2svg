@@ -45,23 +45,23 @@ function pointsConvPrecision(points) {
 // TODO: test penna trasparenza, vedi sopra
 function signedInt2Hex(n) {
     let hexNum = (n >>> 0).toString(16);
-    return "#" + hexNum.substring(2) + hexNum.substring(0,2);
+    return "#" + hexNum.substring(2) + hexNum.substring(0, 2);
 }
 
 // cancella i tag non riconosciuti (che al momento sono inutili) per velocizzare la conversione e divide tutto in pagine
 function parseInput(iwb) {
     let pages = [];
     let lines = iwb.split("\n");
-    for (let i = 0; i<lines.length; i++) {
+    for (let i = 0; i < lines.length; i++) {
         let curLine = lines[i];
-        let curLineCut = curLine.substring(0,2);
-        switch (curLine.substring(0,2)) {
+        let curLineCut = curLine.substring(0, 2);
+        switch (curLine.substring(0, 2)) {
             case "p{":
                 pages.push([]);
-                pages[pages.length-1].push(curLine);
+                pages[pages.length - 1].push(curLine);
                 break;
             case "g:":
-                pages[pages.length-1].push(curLine);
+                pages[pages.length - 1].push(curLine);
                 break;
             default:
                 if (!["a:", "pm", "am", ""].includes(curLineCut)) console.log("Rimuovendo attributo sconosciuto: ", curLine);
@@ -78,70 +78,68 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
     for (let i = 0; i < lines.length; i++) {
         let lineJson = lines[i].substring(lines[i].indexOf("{"));
         let jsonData = JSON.parse(lineJson);
+
         switch (lines[i].charAt(0)) {
             case "g":
                 const pColor = signedInt2Hex(jsonData.props.color);
                 const pSize = jsonData.ps;
-                switch (lines[i].substring(2, lines[i].indexOf(":", 2))) {
-                    case "1":
-                        if (deleted || jsonData.delete) {
-                            const strokeConf = {color: pColor, width: pSize, linecap: "round", linejoin: "round"}
+                let obj;
+                let strokeObj;
 
-                            if (precisioneChk.checked) {
-                                const pointList = pointsConvPrecision(jsonData.points);
-                                pointList.map((pt) => {
-                                    if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
-                                        const strokeUpd = {...strokeConf};
-                                        strokeUpd.width = strokeUpd.width * pt[0];
+                if (!deleted && !jsonData.delete) continue;
+                switch (jsonData.type) {
+                    case 1:
+                        strokeObj = {color: pColor, width: pSize, linecap: "round", linejoin: "round"};
+                        if (precisioneChk.checked) {
+                            const pointList = pointsConvPrecision(jsonData.points);
+                            pointList.map((pt) => {
+                                if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
+                                    const strokeUpd = {...strokeObj};
+                                    strokeUpd.width = strokeUpd.width * pt[0];
 
-                                        let polyline = svg.polyline(pt[1]).fill("none").stroke(strokeUpd);
-                                        if ("transform" in jsonData) {
-                                            let t = jsonData.transform;
-                                            polyline.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
-                                        }
-                                    }
-                                });
-                            } else {
-                                const pointList = pointsConvQuick(jsonData.points);
-                                pointList.map((pt) => {
-                                    if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
-                                        let polyline = svg.polyline(pt[1]).fill("none").stroke(strokeConf);
-                                        if ("transform" in jsonData) {
-                                            let t = jsonData.transform;
-                                            polyline.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
-                                        }
-                                    }
-                                });
-                            }
+                                    obj = svg.polyline(pt[1]).fill("none").stroke(strokeUpd);
+                                }
+                            });
+                        } else {
+                            const pointList = pointsConvQuick(jsonData.points);
+                            pointList.map((pt) => {
+                                if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
+                                    obj = svg.polyline(pt[1]).fill("none").stroke(strokeObj);
+                                }
+                            });
                         }
                         break;
 
-                    case "9":
-                        if (deleted || jsonData.delete) {
-                            let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
-                            line.stroke({color: jsonData.pc, width: jsonData.ps, linecap: "round", linejoin: "round"});
-                            if ("transform" in jsonData) {
-                                let t = jsonData.transform;
-                                line.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
-                            }
-                        }
-                        break;
+                    case 9:
+                    case 11:
+                    case 13:
+                        strokeObj = {color: jsonData.pc, width: jsonData.ps};
+                        obj = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
 
-                    case "11":
-                        if (deleted || jsonData.delete) {
-                            let line = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
-                            line.stroke({color: jsonData.pc, width: jsonData.ps, dasharray: "20,20"});
-                            if ("transform" in jsonData) {
-                                let t = jsonData.transform;
-                                line.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
-                            }
+                        if (jsonData.type === 11) {
+                            strokeObj.dasharray = "10,10";
+                        } else {
+                            strokeObj.linecap = "round";
+                            strokeObj.linejoin = "round";
                         }
+
+                        if (jsonData.type === 13) {
+                            obj.marker('end', 8, 5, function (add) {
+                                add.polygon("0 0, 8 2.5, 0 5").fill(pColor)
+                            })
+                        }
+
+                        obj.stroke(strokeObj);
                         break;
 
                     default:
                         console.log("Tipo di scrittura sconosciuto: ", lines[i].substring(2, lines[i].indexOf(":", 2)));
                         console.log(lines[i]);
                         break;
+                }
+                if ("transform" in jsonData) {
+                    let t = jsonData.transform;
+                    obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
                 }
                 break;
 
@@ -154,7 +152,7 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
     }
     let box = svg.bbox();
     let padding = 250;
-    svg.viewbox([box.x-(padding/2), box.y-(padding/2), box.width+padding, box.height+padding]);
+    svg.viewbox([box.x - (padding / 2), box.y - (padding / 2), box.width + padding, box.height + padding]);
     console.timeEnd("parsing");
 }
 
@@ -169,7 +167,7 @@ function cambioPagina(prec) {
 function refreshPagina() {
     if (pageList.length === 0) return;
     svg.clear();
-    document.getElementById("pagina").innerText = currPage+1;
+    document.getElementById("pagina").innerText = currPage + 1;
     parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
 }
 
