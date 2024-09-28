@@ -1,5 +1,6 @@
 const svg = SVG("#preview")
 const iwbFile = document.getElementById('iwb-loader');
+const svgPadding = 250;
 let currPage = 0;
 let pageList = [];
 
@@ -70,8 +71,7 @@ function parseInput(iwb) {
     return pages;
 }
 
-function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
-    let lines = iwb
+function parseIWB(lines, deleted = false, input_penna = true, input_dita = true) {
     console.time("parsing");
     //console.log(lines)
     for (let i = 0; i < lines.length; i++) {
@@ -82,14 +82,14 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
         switch (lines[i].charAt(0)) {
             case "g":
                 const pColor = signedInt2Hex(jsonData.props.color);
-                const pSize = jsonData.ps;
                 let obj;
-                let strokeObj;
+                let strokeObj = {color: pColor, width: jsonData.ps};
 
                 if (!deleted && !jsonData.delete) continue;
                 switch (jsonData.type) {
-                    case 1:
-                        strokeObj = {color: pColor, width: pSize, linecap: "round", linejoin: "round"};
+                    case 1: // scrittura
+                        strokeObj.linecap = "round";
+                        strokeObj.linejoin = "round";
                         if (precisioneChk.checked) {
                             const pointList = pointsConvPrecision(jsonData.points);
                             skipTransform = true;
@@ -115,10 +115,9 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                         }
                         break;
 
-                    case 9:
-                    case 11:
-                    case 13:
-                        strokeObj = {color: jsonData.pc, width: jsonData.ps};
+                    case 9: // linea retta
+                    case 11: // linea tratteggiata
+                    case 13: // freccia
                         obj = svg.line(jsonData.pps[0], jsonData.pps[1], jsonData.ppe[0], jsonData.ppe[1]);
 
                         if (jsonData.type === 11) {
@@ -137,11 +136,37 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                         obj.stroke(strokeObj);
                         break;
 
+                    case 10: // ellisse
+                        const w = jsonData.rect[2] - jsonData.rect[0];
+                        const h = jsonData.rect[3] - jsonData.rect[1];
+                        obj = svg.ellipse(w, h).x(jsonData.rect[0]).y(jsonData.rect[1]).stroke(strokeObj);
+                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
+                        break;
+
+                    case 12: // cerchio
+                        obj = svg.circle()
+                            .radius(jsonData.cr)
+                            .x(jsonData.cx - jsonData.cr)
+                            .y(jsonData.cy - jsonData.cr)
+                            .stroke(strokeObj);
+                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
+                        break;
+
+                    case 14: // triangolo
+                    case 15: // esagono
+                    case 16: // quadrilateri: trapezio, parallelepipedo, quadrato, rettangolo
+                        let points = jsonData.rect || jsonData.pp;
+                        let ptStr = points.join(" ");
+                        obj = svg.polygon(ptStr).stroke(strokeObj);
+                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
+                        break;
+
                     default:
-                        console.log("Tipo di scrittura sconosciuto: ", lines[i].substring(2, lines[i].indexOf(":", 2)));
-                        console.log(lines[i]);
+                        console.log("Tipo di scrittura sconosciuto: ", jsonData.type, jsonData);
                         break;
                 }
+                jsonData.props.fill ? obj.fill(pColor) : obj.fill("none");
+
                 if ("transform" in jsonData && !skipTransform) {
                     let t = jsonData.transform;
                     obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
@@ -156,8 +181,7 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
         }
     }
     let box = svg.bbox();
-    let padding = 250;
-    svg.viewbox([box.x - (padding / 2), box.y - (padding / 2), box.width + padding, box.height + padding]);
+    svg.viewbox([box.x - (svgPadding / 2), box.y - (svgPadding / 2), box.width + svgPadding, box.height + svgPadding])
     console.timeEnd("parsing");
 }
 
