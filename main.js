@@ -78,6 +78,7 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
     for (let i = 0; i < lines.length; i++) {
         let lineJson = lines[i].substring(lines[i].indexOf("{"));
         let jsonData = JSON.parse(lineJson);
+        let skipTransform = false;
 
         switch (lines[i].charAt(0)) {
             case "g":
@@ -92,12 +93,17 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                         strokeObj = {color: pColor, width: pSize, linecap: "round", linejoin: "round"};
                         if (precisioneChk.checked) {
                             const pointList = pointsConvPrecision(jsonData.points);
+                            skipTransform = true;
                             pointList.map((pt) => {
                                 if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
                                     const strokeUpd = {...strokeObj};
                                     strokeUpd.width = strokeUpd.width * pt[0];
 
                                     obj = svg.polyline(pt[1]).fill("none").stroke(strokeUpd);
+                                    if ("transform" in jsonData) {
+                                        let t = jsonData.transform;
+                                        obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
+                                    }
                                 }
                             });
                         } else {
@@ -137,7 +143,7 @@ function parseIWB(iwb, deleted = false, input_penna = true, input_dita = true) {
                         console.log(lines[i]);
                         break;
                 }
-                if ("transform" in jsonData) {
+                if ("transform" in jsonData && !skipTransform) {
                     let t = jsonData.transform;
                     obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
                 }
