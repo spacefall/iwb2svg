@@ -10,39 +10,32 @@ const cancellatiChk = document.getElementById("cancellatiChk");
 
 // Trasforma la lista di punti in stringhe per uso con polyline, saltando i cambiamenti di spessore per velocità
 function pointsConvQuick(points) {
-    const ptList = [[1, ""]]
-    points.map((ptArray) => {
-        ptList[0][1] += `${ptArray[0]},${ptArray[1]} `;
-    })
-    return ptList;
+    let pointStr = points.map(ptArray => ptArray.slice(0, 2).join(",")).join(' ');
+    return [[1, pointStr]];
 }
 
 // Trasforma la lista di punti in stringhe per uso con polyline, separando anche i punti per spessore
 // in modo da avere una conversione più precisa
 function pointsConvPrecision(points) {
     const ptList = [];
-    let thList = [0];
+    let thList = [1, ""];
     let lastPoint = "";
-    points.map((ptArray) => {
-        let thickness = parseFloat(ptArray[2])
+    points.forEach((ptArray) => {
+        let thickness = parseFloat(ptArray[2]);
+        let curPt = ptArray.slice(0, 2).join(",");
         if (thList[0] === thickness) {
-            thList[1] += ` ${ptArray[0]},${ptArray[1]}`;
+            thList[1] += " " + curPt;
         } else {
-            if (thList[0] !== 0) ptList.push(thList);
-            thList = [thickness, `${lastPoint}${ptArray[0]},${ptArray[1]}`];
+            ptList.push(thList);
+            thList = [thickness, lastPoint + curPt];
         }
-        lastPoint = `${ptArray[0]},${ptArray[1]} `;
+        lastPoint = curPt + " ";
     })
     ptList.push(thList);
     return ptList;
 }
 
-// Questa funzione converte l'int con segno del colore in hex, per un utilizzo più semplice
-// Il numero pare essere in ARGB al posto di RGBA, siccome nello sfondo la trasparenza non esiste,
-//  non ho la certezza che il canale alpha non sia solo il loro modo di indicare un colore;
-//  sarebbe quindi utile effettuare dei test con la penna in trasparenza, anche se questa funzione è stata rimossa. (nelle versioni aggiornate della lavagna)
-//  Al momento però questa funzione lo trasforma in RGBA che produce comunque gli stessi risultati.
-// TODO: test penna trasparenza, vedi sopra
+// Questa funzione converte l'int del colore in hex, inoltre siccome la lavagna salva il colore in ARGB, lo converte in RGBA
 function signedInt2Hex(n) {
     let hexNum = (n >>> 0).toString(16);
     return "#" + hexNum.substring(2) + hexNum.substring(0, 2);
@@ -52,22 +45,28 @@ function signedInt2Hex(n) {
 function parseInput(iwb) {
     let pages = [];
     let lines = iwb.split("\n");
-    for (let i = 0; i < lines.length; i++) {
-        let curLine = lines[i];
-        let curLineCut = curLine.substring(0, 2);
+    lines.forEach(curLine => {
         switch (curLine.substring(0, 2)) {
             case "p{":
                 pages.push([]);
                 pages[pages.length - 1].push(curLine);
                 break;
+
             case "g:":
                 pages[pages.length - 1].push(curLine);
                 break;
+
+            case "a:":
+            case "pm":
+            case "am":
+            case "":
+                break;
+
             default:
-                if (!["a:", "pm", "am", ""].includes(curLineCut)) console.log("Rimuovendo attributo sconosciuto: ", curLine);
+                console.log("Rimuovendo attributo sconosciuto: ", curLine);
+                break;
         }
-    }
-    //console.log(pages);
+    })
     return pages;
 }
 
