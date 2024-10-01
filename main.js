@@ -78,12 +78,12 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
         let lineJson = lines[i].substring(lines[i].indexOf("{"));
         let jsonData = JSON.parse(lineJson);
         let skipTransform = false;
+        let err = false;
 
         switch (lines[i].charAt(0)) {
             case "g":
-                const pColor = signedInt2Hex(jsonData.props.color);
                 let obj;
-                let strokeObj = {color: pColor, width: jsonData.ps};
+                let strokeObj = {color: signedInt2Hex(jsonData.props.color), width: jsonData.ps};
 
                 if (!deleted && !jsonData.delete) continue;
                 switch (jsonData.type) {
@@ -129,7 +129,7 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
 
                         if (jsonData.type === 13) {
                             obj.marker('end', 8, 5, function (add) {
-                                add.polygon("0 0, 8 2.5, 0 5").fill(pColor)
+                                add.polygon("0 0, 8 2.5, 0 5").fill(strokeObj.color)
                             })
                         }
 
@@ -139,8 +139,11 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
                     case 10: // ellisse
                         const w = jsonData.rect[2] - jsonData.rect[0];
                         const h = jsonData.rect[3] - jsonData.rect[1];
+                        if (jsonData.rect.toString() === jsonData.props.toString()) {
+                            console.log("Trovato ellisse malformato, sarà trattato come un ellisse non riempito e senza trasparenza")
+                            strokeObj.color = jsonData.pc;
+                        }
                         obj = svg.ellipse(w, h).x(jsonData.rect[0]).y(jsonData.rect[1]).stroke(strokeObj);
-                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
                         break;
 
                     case 12: // cerchio
@@ -149,7 +152,6 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
                             .x(jsonData.cx - jsonData.cr)
                             .y(jsonData.cy - jsonData.cr)
                             .stroke(strokeObj);
-                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
                         break;
 
                     case 14: // triangolo
@@ -158,18 +160,20 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
                         let points = jsonData.rect || jsonData.pp;
                         let ptStr = points.join(" ");
                         obj = svg.polygon(ptStr).stroke(strokeObj);
-                        //if (jsonData.props.fill) obj.fill(pColor); else obj.fill("none");
                         break;
 
                     default:
-                        console.log("Tipo di scrittura sconosciuto: ", jsonData.type, jsonData);
+                        console.log("Tag sconosciuto: ", jsonData.type, jsonData);
+                        err = true;
                         break;
                 }
-                jsonData.props.fill ? obj.fill(pColor) : obj.fill("none");
+                if (!err) {
+                    ("fill" in jsonData) && jsonData.props.fill ? obj.fill(strokeObj.color) : obj.fill("none");
 
-                if ("transform" in jsonData && !skipTransform) {
-                    let t = jsonData.transform;
-                    obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
+                    if ("transform" in jsonData && !skipTransform && !err) {
+                        let t = jsonData.transform;
+                        obj.transform({a: t[0], b: t[1], c: t[2], d: t[3], e: t[4], f: t[5]});
+                    }
                 }
                 break;
 
