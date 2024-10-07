@@ -8,39 +8,7 @@ const touchChk = document.getElementById("touchChk");
 const pennaChk = document.getElementById("pennaChk");
 const precisioneChk = document.getElementById("precisioneChk");
 const cancellatiChk = document.getElementById("cancellatiChk");
-
-// Trasforma la lista di punti in stringhe per uso con polyline, saltando i cambiamenti di spessore per velocità
-function pointsConvQuick(points) {
-    let pointStr = points.map(ptArray => ptArray.slice(0, 2).join(",")).join(' ');
-    return [[1, pointStr]];
-}
-
-// Trasforma la lista di punti in stringhe per uso con polyline, separando anche i punti per spessore
-// in modo da avere una conversione più precisa
-function pointsConvPrecision(points) {
-    const ptList = [];
-    let thList = [1, ""];
-    let lastPoint = "";
-    points.forEach((ptArray) => {
-        let thickness = parseFloat(ptArray[2]);
-        let curPt = ptArray.slice(0, 2).join(",");
-        if (thList[0] === thickness) {
-            thList[1] += " " + curPt;
-        } else {
-            ptList.push(thList);
-            thList = [thickness, lastPoint + curPt];
-        }
-        lastPoint = curPt + " ";
-    })
-    ptList.push(thList);
-    return ptList;
-}
-
-// Questa funzione converte l'int del colore in hex, inoltre siccome la lavagna salva il colore in ARGB, lo converte in RGBA
-function signedInt2Hex(n) {
-    let hexNum = (n >>> 0).toString(16);
-    return "#" + hexNum.substring(2) + hexNum.substring(0, 2);
-}
+const pr = document.getElementById("convPr");
 
 // cancella i tag non riconosciuti (che al momento sono inutili) per velocizzare la conversione e divide tutto in pagine
 function parseInput(iwb) {
@@ -88,8 +56,7 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
                 if (!deleted && !jsonData.delete) continue;
                 switch (jsonData.type) {
                     case 1: // scrittura
-                        strokeObj.linecap = "round";
-                        strokeObj.linejoin = "round";
+
                         if (precisioneChk.checked) {
                             const pointList = pointsConvPrecision(jsonData.points);
                             skipTransform = true;
@@ -106,7 +73,7 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
                                 }
                             });
                         } else {
-                            const pointList = pointsConvQuick(jsonData.points);
+                            const pointList = pointsConvQuickOld(jsonData.points);
                             pointList.map((pt) => {
                                 if ((input_dita && jsonData.pt === 1) || (input_penna && jsonData.pt === 2)) {
                                     obj = svg.polyline(pt[1]).fill("none").stroke(strokeObj);
@@ -189,6 +156,28 @@ function parseIWB(lines, deleted = false, input_penna = true, input_dita = true)
     console.timeEnd("parsing");
 }
 
+function parseIWBNew(lines, deleted = false, input_penna = true, input_dita = true) {
+    console.time("parsingnew");
+    let promises = [];
+
+    for (let i = 1; i<lines.length; i++) {
+        promises.push(parseIWBTagG(lines[i], svg, deleted, pr));
+    }
+
+    const pTagJson = JSON.parse(lines[0].substring(lines[0].indexOf("{")));
+    svg.css("background-color", intToHexColor(pTagJson.bg.bc));
+    Promise.allSettled(promises).then((v) => {
+        console.log(v);
+        if (v.status === "rejected") {
+            console.log("Errore nella conversione tag: " + v.reason);
+        } else {
+            let box = svg.bbox();
+            svg.viewbox([box.x - (svgPadding / 2), box.y - (svgPadding / 2), box.width + svgPadding, box.height + svgPadding]);
+            console.timeEnd("parsingnew");
+        }
+    });
+}
+
 function cambioPagina(prec) {
     const oldPage = currPage
     if (prec) currPage--; else currPage++;
@@ -198,6 +187,15 @@ function cambioPagina(prec) {
 }
 
 function refreshPagina() {
+    if (pageList.length === 0) return;
+    pr.value = "0";
+    pr.max = pageList[currPage].length-1;
+    svg.clear();
+    document.getElementById("pagina").innerText = currPage + 1;
+    parseIWBNew(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
+}
+
+function refreshPaginaOld() {
     if (pageList.length === 0) return;
     svg.clear();
     document.getElementById("pagina").innerText = currPage + 1;

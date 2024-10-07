@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>iwb2svg</title>
     <script src="svg.js"></script>
+    <script src="utils.js"></script>
+    <script src="newUtils.js"></script>
+    <script src="iwb.js"></script>
+    <script src="typeHandle.js"></script>
     <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
@@ -12,6 +16,9 @@
         <button onclick="cambioPagina(true)">&lt;</button>
         <span id="pagina">1</span>
         <button onclick="cambioPagina(false)">&gt;</button>
+    </div>
+    <div>
+        <progress id="convPr" max="1" value="0"></progress>
     </div>
     <div>
         <label for="iwb-loader">IWB selezionato:</label>
