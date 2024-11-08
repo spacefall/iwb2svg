@@ -1,7 +1,7 @@
 // esegue la conversione da iwb (in formato lista) a svg
-async function parseIWBList(lines, deleted, penIn, touchIn) {
+async function parseIWBList(lines, deleted, penIn, touchIn, precision, padding) {
     let svgObj = SVG();
-    let promises = lines.slice(1).map(line => parseIWB_gTag(line, svgObj, deleted, penIn, touchIn));
+    let promises = lines.slice(1).map(line => parseIWB_gTag(line, svgObj, deleted, penIn, touchIn, precision));
 
     const pTagJson = JSON.parse(lines[0].substring(lines[0].indexOf("{")));
     //svgObj.css("background-color", intToHexColor(pTagJson.bg.bc));
@@ -9,17 +9,17 @@ async function parseIWBList(lines, deleted, penIn, touchIn) {
 
     results.forEach((r) => {
         if (r.status === "rejected") {
-            console.log("Errore nella conversione: " + r.reason);
+            console.error("Errore nella conversione: " + r.reason);
         }
     });
 
     let box = svgObj.bbox();
-    svgObj.viewbox([box.x - (svgPadding / 2), box.y - (svgPadding / 2), box.width + svgPadding, box.height + svgPadding]);
+    svgObj.viewbox([box.x - (padding / 2), box.y - (padding / 2), box.width + padding, box.height + padding]);
     return [svgObj.svg(), intToHexColor(pTagJson.bg.bc)];
 }
 
 // esegue il parse di un tag "g"
-async function parseIWB_gTag(tag, svgElem, deleted, penIn, touchIn) {
+async function parseIWB_gTag(tag, svgElem, deleted, penIn, touchIn, precision) {
     const jsonData = JSON.parse(tag.substring(tag.indexOf("{")));
     const strokeObj = {color: intToHexColor(jsonData.props.color), width: jsonData.ps};
     if (!deleted && !jsonData.delete) return;
@@ -27,16 +27,17 @@ async function parseIWB_gTag(tag, svgElem, deleted, penIn, touchIn) {
 
     if (jsonData.type === 1) {
         if ((touchIn && jsonData.pt === 1) || (penIn && jsonData.pt === 2)) {
-            svgObj = writingHandler(jsonData, strokeObj, svgElem);
+            svgObj = writingHandler(jsonData, strokeObj, svgElem, precision);
         } else return;
     } else if (typeHandlers[jsonData.type]) {
         svgObj = typeHandlers[jsonData.type](jsonData, strokeObj, svgElem);
+        svgObj.stroke(strokeObj);
     } else {
         console.log("Incontrato un tag 'g' sconosciuto di tipo " + jsonData.type + ":\n" + jsonData);
         return;
     }
 
-    svgObj.stroke(strokeObj);
+    //svgObj.stroke(strokeObj);
     ("fill" in jsonData) && jsonData.props.fill ? svgObj.fill(strokeObj.color) : svgObj.fill("none");
 
     if ("transform" in jsonData) {
@@ -61,8 +62,8 @@ function iwbToList(iwb) {
 }
 
 // praticamente un wrapper di parseIWB che fa il parse di tutte le pagine in modo asincrono
-async function batch_parseIWBList(pages, deleted, penIn, touchIn) {
-    const promises = pages.map(page => parseIWBList(page, deleted, penIn, touchIn));
+async function batch_parseIWBList(pages, deleted, penIn, touchIn, precision, padding) {
+    const promises = pages.map(page => parseIWBList(page, deleted, penIn, touchIn, precision, padding));
     const results = await Promise.allSettled(promises);
     return results.map(r => r.value);
 }

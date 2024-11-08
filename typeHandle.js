@@ -62,9 +62,29 @@ const typeHandlers = {
 };
 
 // scrittura a mano
-function writingHandler(data, stroke, svgEl) {
+function writingHandler(data, stroke, svgEl, precision) {
     stroke.linecap = "round";
     stroke.linejoin = "round";
-    const pointList = pointsConv(data.points);
-    return svgEl.polyline(pointList);
+    if (!precision) {
+        const pointList = pointsConv(data.points);
+        return svgEl.polyline(pointList).stroke(stroke);
+    } else {
+        const svgGroup = svgEl.group();
+        let currPts = [];
+        let currThick = 1.0;
+        data.points.forEach((ptArray) => {
+            if (parseFloat(ptArray[2]) !== currThick) {
+                let strokeUpd = {...stroke};
+                strokeUpd.width *= currThick;
+                currPts.push(ptArray.slice(0,2).join());
+                svgGroup.polyline(currPts.join(" ")).stroke(strokeUpd);
+                currThick = parseFloat(ptArray[2]);
+                currPts = [];
+            }
+            currPts.push(ptArray.slice(0,2).join());
+        });
+        stroke.width *= currThick;
+        svgGroup.polyline(currPts.join(" ")).stroke(stroke);
+        return svgGroup;
+    }
 }

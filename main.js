@@ -35,8 +35,9 @@ function refreshPagina() {
     //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
 }
 
+// forza un regen delle pagine già caricate
 function rigeneraPagine() {
-    batch_parseIWBList(pageList, cancellatiChk.checked, pennaChk.checked, touchChk.checked).then((value) => {
+    batch_parseIWBList(pageList, cancellatiChk.checked, pennaChk.checked, touchChk.checked, precisioneChk.checked, svgPadding).then((value) => {
         svgList = value;
         refreshPagina();
     })
@@ -45,6 +46,7 @@ function rigeneraPagine() {
 // carica il file e avvia l'elaborazione
 iwbFile.addEventListener('change', (event) => {
     const fileList = event.target.files;
+    if (fileList.length === 0) return;
     const reader = new FileReader();
 
     reader.addEventListener("loadend", () => {
