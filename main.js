@@ -1,16 +1,19 @@
 const previewSvg = SVG("#preview", true)
 const iwbFile = document.getElementById('iwb-loader');
 const svgPadding = 250;
+
+// gestione pagine
 let currPage = 0;
 let pageList = [];
-
 let svgList = [];
 
+// checkbox
 const touchChk = document.getElementById("touchChk");
 const pennaChk = document.getElementById("pennaChk");
 const precisioneChk = document.getElementById("precisioneChk");
 const cancellatiChk = document.getElementById("cancellatiChk");
 
+// cambia la pagina assicurandosi che non vada sotto 0 e sopra le pagine disponibili, poi carica la pagina corretta
 function cambioPagina(prec) {
     if (prec) {
         if (currPage-1 < 0) return;
@@ -22,24 +25,9 @@ function cambioPagina(prec) {
     refreshPagina();
 }
 
-// praticamente un wrapper di parseIWB che fa il parse di tutte le pagine in modo asincrono
-async function buildSvgList(pages) {
-    let promises = [];
-    let list = [];
-    pages.forEach((page) => {
-        promises.push(parseIWB(page, cancellatiChk.checked/*, pennaChk.checked, touchChk.checked*/));
-    })
-    let results = await Promise.allSettled(promises);
-    results.forEach((r) => {
-        list.push(r.value);
-    })
-    return list;
-}
-
+// pulisce il svg, aggiorna l'indicatore della pagina e carica l'svg della pagina corretta
 function refreshPagina() {
     if (pageList.length === 0) return;
-    //pr.value = "0";
-    //pr.max = pageList[currPage].length-1;
     previewSvg.clear();
     document.getElementById("pagina").innerText = currPage + 1;
     previewSvg.svg(svgList[currPage][0]);
@@ -47,6 +35,14 @@ function refreshPagina() {
     //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
 }
 
+function rigeneraPagine() {
+    batch_parseIWBList(pageList).then((value) => {
+        svgList = value;
+        refreshPagina();
+    })
+}
+
+// carica il file e avvia l'elaborazione
 iwbFile.addEventListener('change', (event) => {
     const fileList = event.target.files;
     const reader = new FileReader();
@@ -55,17 +51,12 @@ iwbFile.addEventListener('change', (event) => {
         let data = reader.result;
         pageList = iwbToList(data);
         currPage = 0;
-        console.time("parsingnew");
-        buildSvgList(pageList).then((value) => {
-            console.timeEnd("parsingnew");
-            svgList = value;
-            refreshPagina();
-        });
+        rigeneraPagine();
     });
     reader.readAsText(fileList[0]);
 });
 
-
+// idk easteregg?
 function funfun() {
     return "fünfhundertfünfundfünfzigtausendfünfhundertfünfundfünfzig";
 }

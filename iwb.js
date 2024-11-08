@@ -1,18 +1,16 @@
-async function parseIWB(lines, deleted = false, input_penna = true, input_dita = true) {
+async function parseIWBList(lines, deleted = false, input_penna = true, input_dita = true) {
     let svgObj = SVG();
-    let promises = lines.slice(1).map(line =>
-        parseIWB_gTag(line, svgObj, deleted)
-    );
+    let promises = lines.slice(1).map(line => parseIWB_gTag(line, svgObj, deleted));
 
     const pTagJson = JSON.parse(lines[0].substring(lines[0].indexOf("{")));
     //svgObj.css("background-color", intToHexColor(pTagJson.bg.bc));
-    let results = await Promise.allSettled(promises)
+    let results = await Promise.allSettled(promises);
 
     results.forEach((r) => {
         if (r.status === "rejected") {
             console.log("Errore nella conversione: " + r.reason);
         }
-    })
+    });
 
     let box = svgObj.bbox();
     svgObj.viewbox([box.x - (svgPadding / 2), box.y - (svgPadding / 2), box.width + svgPadding, box.height + svgPadding]);
@@ -53,4 +51,11 @@ function iwbToList(iwb) {
         }
     });
     return pages;
+}
+
+// praticamente un wrapper di parseIWB che fa il parse di tutte le pagine in modo asincrono
+async function batch_parseIWBList(pages) {
+    const promises = pages.map(page => parseIWBList(page, cancellatiChk.checked));
+    const results = await Promise.allSettled(promises);
+    return results.map(r => r.value);
 }
