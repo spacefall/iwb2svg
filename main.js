@@ -36,7 +36,7 @@ function refreshPagina() {
 }
 
 function rigeneraPagine() {
-    batch_parseIWBList(pageList).then((value) => {
+    batch_parseIWBList(pageList, cancellatiChk.checked, pennaChk.checked, touchChk.checked).then((value) => {
         svgList = value;
         refreshPagina();
     })

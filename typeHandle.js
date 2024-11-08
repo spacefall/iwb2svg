@@ -1,12 +1,4 @@
 const typeHandlers = {
-    // scrittura a mano
-    1: (data, stroke, svgEl) => {
-        stroke.linecap = "round";
-        stroke.linejoin = "round";
-        const pointList = pointsConv(data.points);
-        return svgEl.polyline(pointList);
-    },
-
     // linea retta
     9: (data, stroke, svgEl) => {
         stroke.linecap = "round";
@@ -68,3 +60,11 @@ const typeHandlers = {
         return svgEl.polygon(points);
     },
 };
+
+// scrittura a mano
+function writingHandler(data, stroke, svgEl) {
+    stroke.linecap = "round";
+    stroke.linejoin = "round";
+    const pointList = pointsConv(data.points);
+    return svgEl.polyline(pointList);
+}
