@@ -15,41 +15,54 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <div id="div-pagina">
-        <span>Pagina corrente:</span>
-        <button onclick="cambioPagina(true)">&lt;</button>
-        <span id="pagina">1</span>
-        <button onclick="cambioPagina(false)">&gt;</button>
-    </div>
-    <div>
-        <label for="iwb-loader">IWB selezionato:</label>
-        <input type="file" id="iwb-loader" accept=".iwb">
-    </div>
+    <header>
+        <h1>iwb2svg</h1>
+    </header>
 
-    <!-- Impostazioni -->
-    <details>
-        <summary>Impostazioni:</summary>
-        <small><i>(Passare il mouse sopra le tick per ulteriori informazioni)</i></small>
-        <label title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;Se disattivata il tratto seguirà uno spessore costante.&#10;*L'implementazione corrente ha problemi con le linee trasparenti e potrebbe richiedere più tempo di elaborazione iniziale.*">
-            Penna più precisa (beta, lento)
-            <input id="precisioneChk" type="checkbox" onclick="rigeneraPagine()">
-        </label>
-        <label title="Questa opzione abilita i tratti disegnati senza la penna.">
-            Abilita tratti disegnati a mano
-            <input id="touchChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
-        </label>
-        <label title="Questa opzione abilita i tratti disegnati con la penna.">
-            Abilita tratti disegnati a penna
-            <input id="pennaChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
-        </label>
-        <label title="Questa opzione ripristina i tratti cancellati.">
-            Abilita tratti cancellati
-            <input id="cancellatiChk" type="checkbox" onclick="rigeneraPagine()">
-        </label>
-    </details>
+    <main>
+        <div class="notice" id="file">
+            <div id="fileBorder">
+                <input class="center" type="file" id="iwb-loader" accept=".iwb">
+            </div>
+        </div>
+
+        <!-- Impostazioni -->
+        <details>
+            <summary>Impostazioni</summary>
+            <small><i>(Passare il mouse sopra le tick per ulteriori informazioni)</i></small>
+            <label title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;Se disattivata il tratto seguirà uno spessore costante.&#10;*L'implementazione corrente ha problemi con le linee trasparenti e potrebbe richiedere più tempo di elaborazione iniziale.*">
+                Penna più precisa (beta, lento)
+                <input id="precisioneChk" type="checkbox" onclick="rigeneraPagine()">
+            </label>
+            <label title="Questa opzione abilita i tratti disegnati senza la penna.">
+                Abilita tratti disegnati a mano
+                <input id="touchChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
+            </label>
+            <label title="Questa opzione abilita i tratti disegnati con la penna.">
+                Abilita tratti disegnati a penna
+                <input id="pennaChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
+            </label>
+            <label title="Questa opzione ripristina i tratti cancellati.">
+                Abilita tratti cancellati
+                <input id="cancellatiChk" type="checkbox" onclick="rigeneraPagine()">
+            </label>
+        </details>
+
+        <div id="previewdiv">
+            <details open id="preview">
+                <summary>Preview</summary>
+                <div id="div-pagina">
+                    <span>Pagina:</span>
+                    <button class="minibtn" onclick="cambioPagina(true)">&lt;</button>
+                    <span id="pagina">1</span>
+                    <button class="minibtn" onclick="cambioPagina(false)">&gt;</button>
+                </div>
+            </details>
+        </div>
+    </main>
 
     <!--<svg id="preview"></svg>-->
-    <div class="notice" id="preview"></div>
+
     <script src="main.js"></script>
 </body>
 </html>

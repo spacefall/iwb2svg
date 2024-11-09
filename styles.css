@@ -1,14 +1,27 @@
-body {
-    font-family: sans-serif;
-    font-size: 0.9em;
+/*body {*/
+/*    font-family: sans-serif;*/
+/*    font-size: 0.9em;*/
+/*}*/
+
+/*div {*/
+/*    padding: 5px;*/
+/*}*/
+
+/*label {*/
+/*    display: block;*/
+/*}*/
+
+#file {
+    height: 20vh;
+    padding: 1.3rem;
 }
 
-div {
-    padding: 5px;
-}
-
-label {
-    display: block;
+#fileBorder {
+    border: 4px dashed var(--border);
+    height: 100%;
+    margin: 0;
+    border-radius: var(--standard-border-radius);
+    position: relative;
 }
 
 /*svg {
@@ -16,6 +29,30 @@ label {
     height: 90vh;
 }*/
 
-#preview:empty {
+.center {
+    display: block;
+    text-align: center;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#previewdiv {
     display: none;
+}
+
+#div-pagina {
+    padding-bottom: 1.2rem;
+}
+
+#pagina {
+    font-weight: bold;
+}
+
+.minibtn {
+    padding: .2rem .45rem !important;
+    margin-left: .3rem;
+    margin-right: .3rem;
 }

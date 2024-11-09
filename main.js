@@ -13,25 +13,39 @@ const pennaChk = document.getElementById("pennaChk");
 const precisioneChk = document.getElementById("precisioneChk");
 const cancellatiChk = document.getElementById("cancellatiChk");
 
+const paginaTxt = document.getElementById("pagina");
+const precBtn = document.getElementsByClassName("minibtn")[0];
+const nextBtn = document.getElementsByClassName("minibtn")[1];
+
 // cambia la pagina assicurandosi che non vada sotto 0 e sopra le pagine disponibili, poi carica la pagina corretta
 function cambioPagina(prec) {
-    if (prec) {
-        if (currPage-1 < 0) return;
-        currPage--;
-    } else {
-        if (currPage+1 >= pageList.length) return;
-        currPage++;
-    }
+
+    if (prec) currPage--; else currPage++;
+
+
+
+    // if (prec) {
+    //     if (currPage-1 < 0) return;
+    //     currPage--;
+    // } else {
+    //     if (currPage+1 >= pageList.length) return;
+    //     currPage++;
+    // }
     refreshPagina();
 }
 
 // pulisce il svg, aggiorna l'indicatore della pagina e carica l'svg della pagina corretta
 function refreshPagina() {
     if (pageList.length === 0) return;
-    previewSvg.clear();
-    document.getElementById("pagina").innerText = currPage + 1;
+    //previewSvg.clear();
+
     previewSvg.remove();
     previewSvg = svgList[currPage].clone().addTo("#preview");
+    paginaTxt.innerText = currPage + 1;
+
+    precBtn.disabled = (currPage-1 < 0) ? "disabled" : "";
+    nextBtn.disabled = (currPage+1 >= pageList.length) ? "disabled" : "";
+
     //previewSvg.viewbox(svgList[currPage][0].viewbox())
     //previewSvg.css("background-color", svgList[currPage][1]);
     //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
@@ -55,6 +69,7 @@ iwbFile.addEventListener('change', (event) => {
         let data = reader.result;
         pageList = iwbToList(data);
         currPage = 0;
+        document.getElementById("previewdiv").style.display = "block";
         rigeneraPagine();
     });
     reader.readAsText(fileList[0]);
