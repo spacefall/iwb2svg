@@ -16,7 +16,6 @@ async function parseIWBList(lines, deleted, penIn, touchIn, precision, padding) 
     let box = svgObj.bbox();
     svgObj.viewbox([box.x - (padding / 2), box.y - (padding / 2), box.width + padding, box.height + padding]);
     return svgObj;
-    //return [svgObj, intToHexColor(pTagJson.bg.bc)];
 }
 
 // esegue il parse di un tag "g"
@@ -38,7 +37,6 @@ async function parseIWB_gTag(tag, svgElem, deleted, penIn, touchIn, precision) {
         return;
     }
 
-    //svgObj.stroke(strokeObj);
     ("fill" in jsonData) && jsonData.props.fill ? svgObj.fill(strokeObj.color) : svgObj.fill("none");
 
     if ("transform" in jsonData) {

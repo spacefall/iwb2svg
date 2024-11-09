@@ -1,4 +1,4 @@
-let previewSvg = SVG();// = SVG("#preview", true)
+let previewSvg = SVG();
 const iwbFile = document.getElementById('iwb-loader');
 const svgPadding = 250;
 
@@ -17,38 +17,22 @@ const paginaTxt = document.getElementById("pagina");
 const precBtn = document.getElementsByClassName("minibtn")[0];
 const nextBtn = document.getElementsByClassName("minibtn")[1];
 
-// cambia la pagina assicurandosi che non vada sotto 0 e sopra le pagine disponibili, poi carica la pagina corretta
+// cambia la pagina e carica la pagina corretta, le pagine invalide
 function cambioPagina(prec) {
-
     if (prec) currPage--; else currPage++;
-
-
-
-    // if (prec) {
-    //     if (currPage-1 < 0) return;
-    //     currPage--;
-    // } else {
-    //     if (currPage+1 >= pageList.length) return;
-    //     currPage++;
-    // }
     refreshPagina();
 }
 
 // pulisce il svg, aggiorna l'indicatore della pagina e carica l'svg della pagina corretta
 function refreshPagina() {
     if (pageList.length === 0) return;
-    //previewSvg.clear();
 
     previewSvg.remove();
     previewSvg = svgList[currPage].clone().addTo("#preview");
     paginaTxt.innerText = currPage + 1;
 
-    precBtn.disabled = (currPage-1 < 0) ? "disabled" : "";
-    nextBtn.disabled = (currPage+1 >= pageList.length) ? "disabled" : "";
-
-    //previewSvg.viewbox(svgList[currPage][0].viewbox())
-    //previewSvg.css("background-color", svgList[currPage][1]);
-    //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
+    precBtn.disabled = (currPage - 1 < 0) ? "disabled" : "";
+    nextBtn.disabled = (currPage + 1 >= pageList.length) ? "disabled" : "";
 }
 
 // forza un regen delle pagine già caricate
@@ -62,7 +46,10 @@ function rigeneraPagine() {
 // carica il file e avvia l'elaborazione
 iwbFile.addEventListener('change', (event) => {
     const fileList = event.target.files;
-    if (fileList.length === 0) return;
+    if (fileList.length === 0 || !fileList[0].name.endsWith(".iwb")) {
+        console.error("Input invalido");
+        return;
+    }
     const reader = new FileReader();
 
     reader.addEventListener("loadend", () => {
