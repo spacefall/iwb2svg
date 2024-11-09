@@ -1,4 +1,4 @@
-let previewSvg = SVG("#preview", true)
+let previewSvg = SVG();// = SVG("#preview", true)
 const iwbFile = document.getElementById('iwb-loader');
 const svgPadding = 250;
 
