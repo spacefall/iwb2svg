@@ -15,66 +15,69 @@
     <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-    <header>
-        <h1>iwb2svg</h1>
-    </header>
+<header>
+    <h1>iwb2svg</h1>
+</header>
 
-    <main>
-        <!-- Coso selezione file-->
-        <div class="notice" id="file">
-            <div id="fileBorder">
-                <input class="center" type="file" id="iwb-loader" accept=".iwb">
-            </div>
-        </div>
-
-        <!-- Impostazioni -->
-        <details>
-            <summary>Impostazioni</summary>
-            <small><i>(Passare il mouse sopra le tick per ulteriori informazioni)</i></small>
-            <!-- Mod. precisione -->
-            <label title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;Se disattivata il tratto seguirà uno spessore costante.&#10;*L'implementazione corrente ha problemi con le linee trasparenti e potrebbe richiedere più tempo di elaborazione iniziale.*">
-                Penna più precisa (beta, lento)
-                <input id="precisioneChk" type="checkbox" onclick="rigeneraPagine()">
-            </label>
-            <!-- Dito -->
-            <label title="Questa opzione abilita i tratti disegnati senza la penna.">
-                Abilita tratti disegnati a mano
-                <input id="touchChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
-            </label>
-            <!-- Penna -->
-            <label title="Questa opzione abilita i tratti disegnati con la penna.">
-                Abilita tratti disegnati a penna
-                <input id="pennaChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
-            </label>
-            <!-- Tratti cancellati -->
-            <label title="Questa opzione ripristina i tratti cancellati.">
-                Abilita tratti cancellati
-                <input id="cancellatiChk" type="checkbox" onclick="rigeneraPagine()">
-            </label>
-        </details>
-
-        <!-- Preview -->
-        <div id="previewdiv">
-            <details open id="preview">
-                <summary>Preview</summary>
-                <!-- Selezione pagina -->
-                <div id="div-pagina">
-                    <span>Pagina:</span>
-                    <button class="minibtn" onclick="cambioPagina(true)">&lt;</button>
-                    <span id="pagina">1</span>
-                    <button class="minibtn" onclick="cambioPagina(false)">&gt;</button>
-                </div>
-                <!-- SVG aggiunto qui a runtime -->
-            </details>
-        </div>
-    </main>
-
-    <footer>
-        <p>
-            Source on <a href="https://github.com/spacefall/iwb2svg">GitHub</a>
+<main>
+    <!-- Coso selezione file-->
+    <div class="notice" id="dndZone">
+        <div id="dashes"></div>
+        <input type="file" id="fileSelector" class="hide" accept=".iwb">
+        <p class="center">
+            Rilascia un file o
+            <label class="button inline" for="fileSelector">selezionane uno</label>
         </p>
-    </footer>
+    </div>
 
-    <script src="main.js"></script>
+    <!-- Impostazioni -->
+    <details>
+        <summary>Impostazioni</summary>
+        <small><i>Passare il mouse sopra le tick per ulteriori informazioni</i></small>
+        <!-- Mod. precisione -->
+        <label title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;Se disattivata il tratto seguirà uno spessore costante.&#10;*L'implementazione corrente ha problemi con le linee trasparenti e potrebbe richiedere più tempo di elaborazione iniziale.*">
+            Penna più precisa (beta)
+            <input id="precisioneChk" type="checkbox" onclick="rigeneraPagine()">
+        </label>
+        <!-- Dito -->
+        <label title="Questa opzione abilita i tratti disegnati senza la penna.">
+            Abilita tratti disegnati a mano
+            <input id="touchChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
+        </label>
+        <!-- Penna -->
+        <label title="Questa opzione abilita i tratti disegnati con la penna.">
+            Abilita tratti disegnati a penna
+            <input id="pennaChk" type="checkbox" onclick="rigeneraPagine()" checked="checked">
+        </label>
+        <!-- Tratti cancellati -->
+        <label title="Questa opzione ripristina i tratti cancellati.">
+            Abilita tratti cancellati
+            <input id="cancellatiChk" type="checkbox" onclick="rigeneraPagine()">
+        </label>
+    </details>
+
+    <!-- Preview -->
+    <div id="previewdiv" class="hide">
+        <details open id="preview">
+            <summary>Preview</summary>
+            <!-- Selezione pagina -->
+            <div>
+                <span>Pagina:</span>
+                <button class="minibtn" onclick="cambioPagina(true)">&lt;</button>
+                <b><span id="pagina">1</span></b>
+                <button class="minibtn" onclick="cambioPagina(false)">&gt;</button>
+            </div>
+            <!-- SVG aggiunto qui a runtime -->
+        </details>
+    </div>
+</main>
+
+<footer>
+    <p>
+        Source on <a href="https://github.com/spacefall/iwb2svg">GitHub</a>
+    </p>
+</footer>
+
+<script src="main.js"></script>
 </body>
 </html>

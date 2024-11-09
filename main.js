@@ -1,5 +1,5 @@
 let previewSvg = SVG();
-const iwbFile = document.getElementById('iwb-loader');
+const fileSelector = document.getElementById('fileSelector');
 const svgPadding = 250;
 
 // gestione pagine
@@ -16,6 +16,8 @@ const cancellatiChk = document.getElementById("cancellatiChk");
 const paginaTxt = document.getElementById("pagina");
 const precBtn = document.getElementsByClassName("minibtn")[0];
 const nextBtn = document.getElementsByClassName("minibtn")[1];
+
+const dndZone = document.getElementById("dndZone");
 
 // cambia la pagina e carica la pagina corretta, le pagine invalide
 function cambioPagina(prec) {
@@ -43,24 +45,58 @@ function rigeneraPagine() {
     })
 }
 
-// carica il file e avvia l'elaborazione
-iwbFile.addEventListener('change', (event) => {
+// caricamento file
+
+// evita di aprire il file come nuova tab
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dndZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+});
+
+// animazione
+['dragenter', 'dragover'].forEach(eventName => {
+    dndZone.addEventListener(eventName, () => dndZone.classList.add("dropping"))
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dndZone.addEventListener(eventName, () => dndZone.classList.remove("dropping"))
+});
+
+// carica file con selettore manuale
+fileSelector.addEventListener('change', (event) => {
     const fileList = event.target.files;
-    if (fileList.length === 0 || !fileList[0].name.endsWith(".iwb")) {
+    if (fileList.length === 0) return;
+    handleFile(fileList[0]);
+});
+
+// carica file da drag and drop
+dndZone.addEventListener('drop', (event) => {
+    let dt = event.dataTransfer;
+    let files = dt.files;
+    handleFile(files[0]);
+})
+
+// gestisci il file "caricato"
+function handleFile(file) {
+    if (!file.name.endsWith(".iwb")) {
         console.error("Input invalido");
         return;
     }
     const reader = new FileReader();
+    const prDiv = document.getElementById("previewdiv");
 
     reader.addEventListener("loadend", () => {
         let data = reader.result;
         pageList = iwbToList(data);
         currPage = 0;
-        document.getElementById("previewdiv").style.display = "block";
+        if (prDiv.classList.contains("hide")) prDiv.classList.remove("hide");
         rigeneraPagine();
     });
-    reader.readAsText(fileList[0]);
-});
+    reader.readAsText(file);
+}
+
 
 // idk easteregg?
 function funfun() {

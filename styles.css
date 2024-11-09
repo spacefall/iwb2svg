@@ -1,14 +1,34 @@
-#file {
-    height: 20vh;
-    padding: 1.3rem;
+input, label {
+    cursor: pointer;
 }
 
-#fileBorder {
+#dndZone {
+    position: relative;
+    height: 13rem;
+    padding: 1.5rem;
+    transition: 0.25s;
+}
+
+#dashes {
     border: 4px dashed var(--border);
     height: 100%;
     margin: 0;
     border-radius: var(--standard-border-radius);
-    position: relative;
+    pointer-events: none;
+}
+
+.minibtn {
+    padding: .2rem .45rem !important;
+    margin-left: .3rem;
+    margin-right: .3rem;
+}
+
+.dropping {
+    padding: 1.8rem !important;
+}
+
+.hide {
+    display: none !important;
 }
 
 .center {
@@ -21,20 +41,6 @@
     transform: translate(-50%, -50%);
 }
 
-#previewdiv {
-    display: none;
-}
-
-#div-pagina {
-    padding-bottom: 1.2rem;
-}
-
-#pagina {
-    font-weight: bold;
-}
-
-.minibtn {
-    padding: .2rem .45rem !important;
-    margin-left: .3rem;
-    margin-right: .3rem;
+.inline {
+    display: inline !important;
 }
