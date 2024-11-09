@@ -4,7 +4,7 @@ async function parseIWBList(lines, deleted, penIn, touchIn, precision, padding) 
     let promises = lines.slice(1).map(line => parseIWB_gTag(line, svgObj, deleted, penIn, touchIn, precision));
 
     const pTagJson = JSON.parse(lines[0].substring(lines[0].indexOf("{")));
-    //svgObj.css("background-color", intToHexColor(pTagJson.bg.bc));
+    svgObj.css("background-color", intToHexColor(pTagJson.bg.bc));
     let results = await Promise.allSettled(promises);
 
     results.forEach((r) => {
@@ -15,7 +15,8 @@ async function parseIWBList(lines, deleted, penIn, touchIn, precision, padding) 
 
     let box = svgObj.bbox();
     svgObj.viewbox([box.x - (padding / 2), box.y - (padding / 2), box.width + padding, box.height + padding]);
-    return [svgObj.svg(), intToHexColor(pTagJson.bg.bc)];
+    return svgObj;
+    //return [svgObj, intToHexColor(pTagJson.bg.bc)];
 }
 
 // esegue il parse di un tag "g"

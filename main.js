@@ -1,4 +1,4 @@
-const previewSvg = SVG("#preview", true)
+let previewSvg = SVG("#preview", true)
 const iwbFile = document.getElementById('iwb-loader');
 const svgPadding = 250;
 
@@ -30,8 +30,10 @@ function refreshPagina() {
     if (pageList.length === 0) return;
     previewSvg.clear();
     document.getElementById("pagina").innerText = currPage + 1;
-    previewSvg.svg(svgList[currPage][0]);
-    previewSvg.css("background-color", svgList[currPage][1]);
+    previewSvg.remove();
+    previewSvg = svgList[currPage].clone().addTo("body");
+    //previewSvg.viewbox(svgList[currPage][0].viewbox())
+    //previewSvg.css("background-color", svgList[currPage][1]);
     //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
 }
 
