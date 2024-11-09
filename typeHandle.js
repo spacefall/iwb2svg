@@ -76,10 +76,10 @@ function writingHandler(data, stroke, svgEl, precision) {
             if (parseFloat(ptArray[2]) !== currThick) {
                 let strokeUpd = {...stroke};
                 strokeUpd.width *= currThick;
-                currPts.push(ptArray.slice(0,2).join());
+                //currPts.push(ptArray.slice(0,2).join());
                 svgGroup.polyline(currPts.join(" ")).stroke(strokeUpd);
                 currThick = parseFloat(ptArray[2]);
-                currPts = [];
+                currPts = [currPts[currPts.length -1]];
             }
             currPts.push(ptArray.slice(0,2).join());
         });
