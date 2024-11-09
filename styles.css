@@ -2,6 +2,14 @@ input, label {
     cursor: pointer;
 }
 
+p {
+    line-height: 2.1;
+}
+
+.button {
+    white-space: nowrap;
+}
+
 #dndZone {
     position: relative;
     height: 13rem;
