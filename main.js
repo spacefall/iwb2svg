@@ -31,7 +31,7 @@ function refreshPagina() {
     previewSvg.clear();
     document.getElementById("pagina").innerText = currPage + 1;
     previewSvg.remove();
-    previewSvg = svgList[currPage].clone().addTo("body");
+    previewSvg = svgList[currPage].clone().addTo("#preview");
     //previewSvg.viewbox(svgList[currPage][0].viewbox())
     //previewSvg.css("background-color", svgList[currPage][1]);
     //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
