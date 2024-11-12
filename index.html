@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <title>iwb2svg</title>
     <script src="svg.js"></script>
+    <script src="utils.js"></script>
+    <script src="iwb.js"></script>
+    <script src="typeHandle.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
@@ -23,22 +27,22 @@
         <i>(Passare il mouse sopra le tick per ulteriori informazioni)</i>
         <label>
             Penna più precisa (beta, lento)
-            <input id="precisioneChk" type="checkbox" onclick="refreshPagina()" title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;*L'implementazione corrente non funziona correttamente con le linee trasparenti ed è lenta: in media è il doppio più lenta di quella normale e in alcune pagine anche 5 volte più lenta.*&#10;Se disattivata il tratto seguirà uno spessore costante.">
+            <input id="precisioneChk" type="checkbox" onclick="rigeneraPagine()" title="Quando si scrive in modalità stilografica, il tratto cambia spessore; questa impostazione segue lo stesso cambiamento di spessore.&#10;*L'implementazione corrente non funziona correttamente con le linee trasparenti ed è lenta: in media è il doppio più lenta di quella normale e in alcune pagine anche 5 volte più lenta.*&#10;Se disattivata il tratto seguirà uno spessore costante.">
         </label>
         <label>
             Abilita tratti disegnati a mano
-            <input id="touchChk" type="checkbox" onclick="refreshPagina()" checked="checked" title="Questa opzione abilita/disabilita i tratti disegnati senza la penna.">
+            <input id="touchChk" type="checkbox" onclick="rigeneraPagine()" checked="checked" title="Questa opzione abilita/disabilita i tratti disegnati senza la penna.">
         </label>
         <label>
             Abilita tratti disegnati a penna
-            <input id="pennaChk" type="checkbox" onclick="refreshPagina()" checked="checked" title="Questa opzione abilita/disabilita i tratti disegnati con la penna.">
+            <input id="pennaChk" type="checkbox" onclick="rigeneraPagine()" checked="checked" title="Questa opzione abilita/disabilita i tratti disegnati con la penna.">
         </label>
         <label>
             Abilita tratti cancellati
-            <input id="cancellatiChk" type="checkbox" onclick="refreshPagina()" title="Questa opzione ripristina i tratti cancellati.">
+            <input id="cancellatiChk" type="checkbox" onclick="rigeneraPagine()" title="Questa opzione ripristina i tratti cancellati.">
         </label>
     </div>
-    <svg id="preview"></svg>
+    <!--<svg id="preview"></svg>-->
     <script src="main.js"></script>
 </body>
 </html>
