@@ -1,4 +1,6 @@
-const typeHandlers = {
+import { pointsConv } from "./utils.js";
+
+export const typeHandlers = {
     // linea retta
     9: (data, stroke, svgEl) => {
         stroke.linecap = "round";
@@ -62,7 +64,7 @@ const typeHandlers = {
 };
 
 // scrittura a mano
-function writingHandler(data, stroke, svgEl, precision) {
+export function writingHandler(data, stroke, svgEl, precision) {
     stroke.linecap = "round";
     stroke.linejoin = "round";
     if (!precision) {
