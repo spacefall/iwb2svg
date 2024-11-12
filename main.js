@@ -1,3 +1,7 @@
+import { SVG } from "https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.4/svg.esm.min.js";
+import { batch_parseIWBList, iwbToList } from "./iwb.js";
+
+
 let previewSvg = SVG();
 const fileSelector = document.getElementById('fileSelector');
 const svgPadding = 250;
@@ -19,11 +23,18 @@ const nextBtn = document.getElementsByClassName("minibtn")[1];
 
 const dndZone = document.getElementById("dndZone");
 
-// cambia la pagina e carica la pagina corretta, le pagine invalide
-function cambioPagina(prec) {
-    if (prec) currPage--; else currPage++;
+
+
+// cambia la pagina e ricarica la pagina
+precBtn.addEventListener("click", () => {
+   currPage--;
+   refreshPagina();
+});
+
+nextBtn.addEventListener("click", () => {
+    currPage++;
     refreshPagina();
-}
+})
 
 // pulisce il svg, aggiorna l'indicatore della pagina e carica l'svg della pagina corretta
 function refreshPagina() {
@@ -95,10 +106,4 @@ function handleFile(file) {
         rigeneraPagine();
     });
     reader.readAsText(file);
-}
-
-
-// idk easteregg?
-function funfun() {
-    return "fünfhundertfünfundfünfzigtausendfünfhundertfünfundfünfzig";
 }

@@ -1,3 +1,7 @@
+import { SVG } from "https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.4/svg.esm.min.js";
+import { intToHexColor } from "./utils.js";
+import { typeHandlers, writingHandler } from "./typeHandle.js";
+
 // esegue la conversione da iwb (in formato lista) a svg
 async function parseIWBList(lines, deleted, penIn, touchIn, precision, padding) {
     let svgObj = SVG();
@@ -46,7 +50,7 @@ async function parseIWB_gTag(tag, svgElem, deleted, penIn, touchIn, precision) {
 }
 
 // semplifica un iwb rimuovendo le cose (ritenute) inutili e dividendo le pagine in liste al posto di essere limitate da tag
-function iwbToList(iwb) {
+export function iwbToList(iwb) {
     let pages = [];
     iwb.split("\n").forEach(line => {
         if (line.startsWith("p{")) {
@@ -61,7 +65,7 @@ function iwbToList(iwb) {
 }
 
 // praticamente un wrapper di parseIWB che fa il parse di tutte le pagine in modo asincrono
-async function batch_parseIWBList(pages, deleted, penIn, touchIn, precision, padding) {
+export async function batch_parseIWBList(pages, deleted, penIn, touchIn, precision, padding) {
     const promises = pages.map(page => parseIWBList(page, deleted, penIn, touchIn, precision, padding));
     const results = await Promise.allSettled(promises);
     return results.map(r => r.value);
