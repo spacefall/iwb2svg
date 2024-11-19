@@ -1,17 +1,54 @@
-body {
-    font-family: sans-serif;
-    font-size: 0.9em;
+input, label {
+    cursor: pointer;
 }
 
-div {
-    padding: 5px;
+p {
+    line-height: 2.1;
 }
 
-label {
+.button {
+    white-space: nowrap;
+}
+
+#dndZone {
+    position: relative;
+    height: 13rem;
+    padding: 1.5rem;
+    transition: 0.25s;
+}
+
+#dashes {
+    border: 4px dashed var(--border);
+    height: 100%;
+    margin: 0;
+    border-radius: var(--standard-border-radius);
+    pointer-events: none;
+}
+
+.minibtn {
+    padding: .2rem .45rem !important;
+    margin-left: .3rem;
+    margin-right: .3rem;
+}
+
+.dropping {
+    padding: 1.8rem !important;
+}
+
+.hide {
+    display: none !important;
+}
+
+.center {
     display: block;
+    text-align: center;
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
-/*svg {
-    width: 90%;
-    height: 90vh;
-}*/
+.inline {
+    display: inline !important;
+}

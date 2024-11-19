@@ -1,5 +1,9 @@
-let previewSvg = SVG();// = SVG("#preview", true)
-const iwbFile = document.getElementById('iwb-loader');
+import { SVG } from "https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.4/svg.esm.min.js";
+import { batch_parseIWBList, iwbToList } from "./iwb.js";
+
+
+let previewSvg = SVG();
+const fileSelector = document.getElementById('fileSelector');
 const svgPadding = 250;
 
 // gestione pagine
@@ -13,28 +17,35 @@ const pennaChk = document.getElementById("pennaChk");
 const precisioneChk = document.getElementById("precisioneChk");
 const cancellatiChk = document.getElementById("cancellatiChk");
 
-// cambia la pagina assicurandosi che non vada sotto 0 e sopra le pagine disponibili, poi carica la pagina corretta
-function cambioPagina(prec) {
-    if (prec) {
-        if (currPage-1 < 0) return;
-        currPage--;
-    } else {
-        if (currPage+1 >= pageList.length) return;
-        currPage++;
-    }
+const paginaTxt = document.getElementById("pagina");
+const precBtn = document.getElementsByClassName("minibtn")[0];
+const nextBtn = document.getElementsByClassName("minibtn")[1];
+
+const dndZone = document.getElementById("dndZone");
+
+
+
+// cambia la pagina e ricarica la pagina
+precBtn.addEventListener("click", () => {
+   currPage--;
+   refreshPagina();
+});
+
+nextBtn.addEventListener("click", () => {
+    currPage++;
     refreshPagina();
-}
+})
 
 // pulisce il svg, aggiorna l'indicatore della pagina e carica l'svg della pagina corretta
 function refreshPagina() {
     if (pageList.length === 0) return;
-    previewSvg.clear();
-    document.getElementById("pagina").innerText = currPage + 1;
+
     previewSvg.remove();
-    previewSvg = svgList[currPage].clone().addTo("body");
-    //previewSvg.viewbox(svgList[currPage][0].viewbox())
-    //previewSvg.css("background-color", svgList[currPage][1]);
-    //parseIWB(pageList[currPage], cancellatiChk.checked, pennaChk.checked, touchChk.checked);
+    previewSvg = svgList[currPage].clone().addTo("#preview");
+    paginaTxt.innerText = currPage + 1;
+
+    precBtn.disabled = (currPage - 1 < 0) ? "disabled" : "";
+    nextBtn.disabled = (currPage + 1 >= pageList.length) ? "disabled" : "";
 }
 
 // forza un regen delle pagine già caricate
@@ -45,22 +56,54 @@ function rigeneraPagine() {
     })
 }
 
-// carica il file e avvia l'elaborazione
-iwbFile.addEventListener('change', (event) => {
+// caricamento file
+
+// evita di aprire il file come nuova tab
+['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dndZone.addEventListener(eventName, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    });
+});
+
+// animazione
+['dragenter', 'dragover'].forEach(eventName => {
+    dndZone.addEventListener(eventName, () => dndZone.classList.add("dropping"))
+});
+
+['dragleave', 'drop'].forEach(eventName => {
+    dndZone.addEventListener(eventName, () => dndZone.classList.remove("dropping"))
+});
+
+// carica file con selettore manuale
+fileSelector.addEventListener('change', (event) => {
     const fileList = event.target.files;
     if (fileList.length === 0) return;
+    handleFile(fileList[0]);
+});
+
+// carica file da drag and drop
+dndZone.addEventListener('drop', (event) => {
+    let dt = event.dataTransfer;
+    let files = dt.files;
+    handleFile(files[0]);
+})
+
+// gestisci il file "caricato"
+function handleFile(file) {
+    if (!file.name.endsWith(".iwb")) {
+        console.error("Input invalido");
+        return;
+    }
     const reader = new FileReader();
+    const prDiv = document.getElementById("previewdiv");
 
     reader.addEventListener("loadend", () => {
         let data = reader.result;
         pageList = iwbToList(data);
         currPage = 0;
+        if (prDiv.classList.contains("hide")) prDiv.classList.remove("hide");
         rigeneraPagine();
     });
-    reader.readAsText(fileList[0]);
-});
-
-// idk easteregg?
-function funfun() {
-    return "fünfhundertfünfundfünfzigtausendfünfhundertfünfundfünfzig";
+    reader.readAsText(file);
 }
